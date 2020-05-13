@@ -4,3 +4,42 @@
 * May XX, 2020
 */
 
+body, html {
+    height: 100%;
+    width: 100%;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+.calc-btn {
+    background: #E0E0E0;
+    border: 1px solid #E0E0E0;
+    border-radius: 10%;
+    color: black;
+    height: 80px;
+    width: 80px;
+    flex: 0 1 auto;
+    margin: 5px;
+    text-align: center;
+}
+#calc-btns {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+#btn-equals {
+    background: #AE52D4;
+    border: 1px solid #AE52D4;
+    border-radius: 5%;
+    color: black;
+    height: 80px;
+    width: 80px;
+    flex: 2 1 auto;
+    text-align: center;
+}
+.btn-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    margin: 8px;
+}
