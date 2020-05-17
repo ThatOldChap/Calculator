@@ -10,36 +10,38 @@
 <html>
     <body>
         <div id='calc-body'>
-            <div id='calc-screen'></div>
-            <div id='calc-btns'>
-                <div id='btn-column-1' class="btn-column">
-                    <div id='btn-divide' class="calc-btn">/</div>
-                    <div id='btn-7' class="calc-btn">7</div>
-                    <div id='btn-4' class="calc-btn">4</div>
-                    <div id='btn-1' class="calc-btn">1</div>
-                    <div id='btn-decimal' class="calc-btn">.</div>
-                </div>
-                <div id='btn-column-2' class="btn-column">
-                    <div id='btn-multiply' class="calc-btn">x</div>
-                    <div id='btn-8' class="calc-btn">8</div>
-                    <div id='btn-5' class="calc-btn">5</div>
-                    <div id='btn-3' class="calc-btn">3</div>
-                    <div id='btn-0' class="calc-btn">0</div>
-                </div>
-                <div id='btn-column-3' class="btn-column">
-                    <div id='btn-subtract' class="calc-btn">-</div>
-                    <div id='btn-9' class="calc-btn">9</div>
-                    <div id='btn-6' class="calc-btn">6</div>
-                    <div id='btn-3' class="calc-btn">3</div>
-                    <div id='btn-sign' class="calc-btn">+/-</div>
-                </div>
-                <div id='btn-column-4' class="btn-column">
-                    <div id='btn-add' class="calc-btn">+</div>
-                    <div id='btn-backspace' class="calc-btn">Del</div>
-                    <div id='btn-clear' class="calc-btn">C</div>
-                    <div id='btn-equals' class="calc-btn">=</div>
+            <div id='calc-body-container'>
+                <div id='calc-screen'>123</div>
+                <div id='calc-btn-container'>
+                    <div id='btn-column-1' class="btn-column">
+                        <div id='btn-divide' class="calc-btn calc-btn-operator">/</div>
+                        <div id='btn-7' class="calc-btn">7</div>
+                        <div id='btn-4' class="calc-btn">4</div>
+                        <div id='btn-1' class="calc-btn">1</div>
+                        <div id='btn-decimal' class="calc-btn">.</div>
+                    </div>
+                    <div id='btn-column-2' class="btn-column">
+                        <div id='btn-multiply' class="calc-btn calc-btn-operator">x</div>
+                        <div id='btn-8' class="calc-btn">8</div>
+                        <div id='btn-5' class="calc-btn">5</div>
+                        <div id='btn-3' class="calc-btn">2</div>
+                        <div id='btn-0' class="calc-btn">0</div>
+                    </div>
+                    <div id='btn-column-3' class="btn-column">
+                        <div id='btn-subtract' class="calc-btn calc-btn-operator">-</div>
+                        <div id='btn-9' class="calc-btn">9</div>
+                        <div id='btn-6' class="calc-btn">6</div>
+                        <div id='btn-3' class="calc-btn">3</div>
+                        <div id='btn-sign' class="calc-btn">+/-</div>
+                    </div>
+                    <div id='btn-column-4' class="btn-column">
+                        <div id='btn-add' class="calc-btn calc-btn-operator">+</div>
+                        <div id='btn-backspace' class="calc-btn calc-btn-operator">Del</div>
+                        <div id='btn-clear' class="calc-btn calc-btn-operator">Clr</div>
+                        <div id='btn-equals' class="calc-btn">=</div>
+                    </div>  
                 </div>  
-            </div>          
+            </div>        
         </div>
     </body>
     <script src='scripts.js'></script>
