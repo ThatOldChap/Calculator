@@ -24,20 +24,20 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    padding: 24px;
     background: #646568;
     border: 1px solid #646568;
     border-radius: 10px;
 }
-#calc-screen {
+#calc-display {
     height: 100px;
-    width: 98%;
+    width: 97%;
     background: #E0E0E0;
     display: flex;
-    border: 1px solid #AE52D4;
+    border: 1px solid #E0E0E0;
     border-radius: 10px;
     padding: 0 0 0 0;
-    margin: 0 0 10px 0;
+    margin: 0 0 20px 0;
     justify-content: right;
     align-items: center;
     font-size: 2.25rem;
@@ -65,10 +65,13 @@ body, html {
     margin: 2px 2px 2px 2px;
     font-size: 1.75rem;
 }
+.calc-btn:hover {
+    cursor: default;
+}
 .calc-btn-operator {
     background: #A3A6A1;
 }
-#btn-equals {
+#opn-equals {
     background: #AE52D4;
     border: 1px solid #646568;
     border-radius: 5%;
