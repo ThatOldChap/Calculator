@@ -21,14 +21,17 @@ const opnAdd = document.querySelector('#opn-add');
 const opnSub = document.querySelector('#opn-subtract');
 const opnMultiply = document.querySelector('#opn-multiply');
 const opnDivide = document.querySelector('#opn-divide');
-const opnBackspace = document.querySelector('#opn-backspace');
-const opnClear = document.querySelector('#opn-clear');
 const opnEquals = document.querySelector('#opn-equals');
-const opnSign = document.querySelector('#opn-sign');
-const opnDecimal = document.querySelector('#opn-decimal');
+
+// Defines all the calculator functions
+const funcBackspace = document.querySelector('#func-backspace');
+const funcClear = document.querySelector('#func-clear');
+const funcSign = document.querySelector('#func-sign');
+const funcDecimal = document.querySelector('#func-decimal');
 
 // Defines the display
 const calcDisplay = document.querySelector('#calc-display');
+const calcDisplayHistory = document.querySelector('#calc-display-history');
 
 let currentNum1;
 let currentNum2;
@@ -49,21 +52,25 @@ buttons.forEach((button) => {
         let isNum = (buttonID.search("btn") != -1);
         let isOpn = (buttonID.search("opn") != -1);
         let isEquals = (buttonID.search("equals") != -1);
+        let clearDisplay = (buttonID.search("clear") != -1);
 
         // Inital selection of the 1st number
         if (!num1Selected && !num2Selected && !opnSelected && isNum) {
             calcDisplay.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
+            calcDisplayHistory.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
             currentNum1 = Number(calcDisplay.textContent);
             console.log(currentNum1);
             num1Selected = true;
         // Selection of the 1st operation
         } else if (num1Selected && !num2Selected && isOpn) {
             currentOpn = `${buttonID.slice(4)}`;
+            calcDisplayHistory.textContent += ` ${currentOpn} `;
             console.log(currentOpn);
             opnSelected = true;
         // Selection of the 2nd number
         } else if (num1Selected && !num2Selected && opnSelected && isNum) {
             calcDisplay.textContent = `${buttonID.charAt(buttonID.length - 1)}`;
+            calcDisplayHistory.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
             currentNum2 = Number(calcDisplay.textContent);
             console.log(currentNum2);
             num2Selected = true;
@@ -72,6 +79,7 @@ buttons.forEach((button) => {
             currentNum1 = operate(currentOpn, currentNum1, currentNum2);
             console.log(currentNum1);
             calcDisplay.textContent = currentNum1;
+            calcDisplayHistory.textContent += ` ${currentOpn} `;
             num2Selected = false;
             opnSelected = false; 
         // Selection when the an operator button is pressed instead of an equals to generate a new total
@@ -79,8 +87,21 @@ buttons.forEach((button) => {
             currentNum1 = operate(currentOpn, currentNum1, currentNum2);
             console.log(currentNum1);
             calcDisplay.textContent = currentNum1;
+            calcDisplayHistory.textContent += ` ${currentOpn} `;
             num2Selected = false;
             currentOpn = `${buttonID.slice(4)}`;
+        // Clears the display
+        } else if (clearDisplay) {
+            console.log(`Clear display`);
+            currentNum1 = undefined;
+            currentNum2 = undefined;
+            currentOpn = undefined;
+            num1Selected = false;
+            num2Selected = false;
+            opnSelected = false;
+            clearDisplay = false;
+            calcDisplay.textContent = ` `;
+            calcDisplayHistory.textContent = ` `;
         }
     }) 
 });
@@ -89,7 +110,7 @@ buttons.forEach((button) => {
 // Basic math functions
 const add = (num1, num2) => (num1 + num2);
 const subtract = (num1, num2) => (num1 - num2);
-const multipy = (num1, num2) => (num1 * num2);
+const multiply = (num1, num2) => (num1 * num2);
 const divide = (num1, num2) => (num1 / num2);
 
 const operate = function (operation, num1, num2) {
@@ -99,7 +120,7 @@ const operate = function (operation, num1, num2) {
         case "subtract":
             return subtract(num1, num2);
         case "multiply":
-            return multipy(num1, num2);  
+            return multiply(num1, num2);  
         case "divide":
             return divide(num1, num2);      
         default:
