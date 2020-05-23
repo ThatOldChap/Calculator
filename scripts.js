@@ -15,97 +15,139 @@ const num6 = document.querySelector('#btn-6');
 const num7 = document.querySelector('#btn-7');
 const num8 = document.querySelector('#btn-8');
 const num9 = document.querySelector('#btn-9');
+const numDecimal = document.querySelector('#btn-decimal');
 
 // Defines all the calculator operations
 const opnAdd = document.querySelector('#opn-add');
 const opnSub = document.querySelector('#opn-subtract');
 const opnMultiply = document.querySelector('#opn-multiply');
 const opnDivide = document.querySelector('#opn-divide');
-const opnEquals = document.querySelector('#opn-equals');
 
 // Defines all the calculator functions
 const funcBackspace = document.querySelector('#func-backspace');
 const funcClear = document.querySelector('#func-clear');
 const funcSign = document.querySelector('#func-sign');
-const funcDecimal = document.querySelector('#func-decimal');
+const funcEquals = document.querySelector('#func-equals');
 
 // Defines the display
 const calcDisplay = document.querySelector('#calc-display');
 const calcDisplayHistory = document.querySelector('#calc-display-history');
+
+// TODO: Create an init() or reset() function to define all these
+let displayVal = "";
+let displayHistory = "";
+let total;
+
+let isNum = false;
+let btnNum = false;
+let isDecimal = false;
+let isOpn = false;
+let isEquals = false;
+let buttonID;
 
 let currentNum1;
 let currentNum2;
 let currentOpn;
 
 let num1Selected = false;
-let num2Selected = false;
 let opnSelected = false;
+
+let numBuilder = false;
 
 // Adds functionality to use the buttons
 const buttons = document.querySelectorAll('.calc-btn');
 buttons.forEach((button) => {
     
     button.addEventListener('click', (event) => {
-        let buttonID = event.target.id;
+        buttonID = event.target.id;
         console.log(`Button = ${buttonID}`);
 
-        let isNum = (buttonID.search("btn") != -1);
-        let isOpn = (buttonID.search("opn") != -1);
-        let isEquals = (buttonID.search("equals") != -1);
+        isNum = (buttonID.search("btn") != -1);
+        if (isNum) btnNum = (buttonID.charAt(buttonID.length - 1));
+        isDecimal = (buttonID.search("decimal") != -1);
+
+        isOpn = (buttonID.search("opn") != -1);
+        if (isOpn) (currentOpn = buttonID.slice(4));
+
+        isEquals = (buttonID.search("equals") != -1);
         let clearDisplay = (buttonID.search("clear") != -1);
 
-        // Inital selection of the 1st number
-        if (!num1Selected && !num2Selected && !opnSelected && isNum) {
-            calcDisplay.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
-            calcDisplayHistory.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
-            currentNum1 = Number(calcDisplay.textContent);
-            console.log(currentNum1);
-            num1Selected = true;
-        // Selection of the 1st operation
-        } else if (num1Selected && !num2Selected && isOpn) {
-            currentOpn = `${buttonID.slice(4)}`;
-            calcDisplayHistory.textContent += ` ${currentOpn} `;
-            console.log(currentOpn);
-            opnSelected = true;
-        // Selection of the 2nd number
-        } else if (num1Selected && !num2Selected && opnSelected && isNum) {
-            calcDisplay.textContent = `${buttonID.charAt(buttonID.length - 1)}`;
-            calcDisplayHistory.textContent += `${buttonID.charAt(buttonID.length - 1)}`;
-            currentNum2 = Number(calcDisplay.textContent);
-            console.log(currentNum2);
-            num2Selected = true;
-        // Selection when the equals button is pressed
-        } else if (num1Selected && num2Selected && opnSelected && isEquals) {
-            currentNum1 = operate(currentOpn, currentNum1, currentNum2);
-            console.log(currentNum1);
-            calcDisplay.textContent = currentNum1;
-            calcDisplayHistory.textContent += ` ${currentOpn} `;
-            num2Selected = false;
-            opnSelected = false; 
-        // Selection when the an operator button is pressed instead of an equals to generate a new total
-        } else if (num1Selected && num2Selected && opnSelected && isOpn) {
-            currentNum1 = operate(currentOpn, currentNum1, currentNum2);
-            console.log(currentNum1);
-            calcDisplay.textContent = currentNum1;
-            calcDisplayHistory.textContent += ` ${currentOpn} `;
-            num2Selected = false;
-            currentOpn = `${buttonID.slice(4)}`;
-        // Clears the display
+        if (isNum) {
+            if (isDecimal) {
+                (numBuilder) ? (displayVal += ".") : (displayVal += "0.", numBuilder = true);
+            } else {
+                (numBuilder) ? (displayVal += btnNum) : (displayVal = btnNum);
+                numBuilder = true;
+            }
+            calcDisplay.textContent = displayVal;
         } else if (clearDisplay) {
-            console.log(`Clear display`);
-            currentNum1 = undefined;
-            currentNum2 = undefined;
-            currentOpn = undefined;
-            num1Selected = false;
-            num2Selected = false;
-            opnSelected = false;
-            clearDisplay = false;
-            calcDisplay.textContent = ` `;
-            calcDisplayHistory.textContent = ` `;
+            resetCalc();
+        } else {
+            numBuilder = false;
+            if (isOpn) (opnSelected = true);
+
+            // First number being entered into the calculator
+            if (!num1Selected) {
+                num1Selected = true;
+                currentNum1 = Number(displayVal);
+                displayHistory += (currentNum1 + getOpnVal(currentOpn));
+                calcDisplayHistory.textContent = displayHistory;
+
+            // An additional operator has been added to continue the calculation
+            } else if (num1Selected && opnSelected && isOpn) {
+                currentNum2 = Number(displayVal);
+                total = operate(currentOpn, currentNum1, currentNum2);
+                displayVal = total;
+                currentNum1 = total;
+                displayHistory += (currentNum2 + getOpnVal(currentOpn));
+                calcDisplay.textContent = displayVal;
+                calcDisplayHistory.textContent = displayHistory;
+
+            // The equals button has been pressed to finish the calculation
+            } else if (num1Selected && opnSelected && isEquals) {
+                currentNum2 = Number(displayVal);
+                console.log(`currentNum1 = ${currentNum1}, currentNum2 = ${currentNum2} and currentOpn = ${currentOpn}`);
+                total = operate(currentOpn, currentNum1, currentNum2);
+                console.log(`total = ${total}`);
+                displayHistory += currentNum2;
+                displayVal = total;
+                calcDisplayHistory.textContent += `${displayHistory} =`;
+                calcDisplay.textContent = displayVal;
+            }
+            // TODO: Create function like updateDisplay(display, history)
         }
     }) 
 });
 
+const updateDisplay = (displayVal, displayHistory) => {
+
+}
+
+const getOpnVal = (currentOpn) => {
+    switch (currentOpn) {
+        case "add":
+            return ` + `;
+        case "subtract":
+            return ` - `;
+        case "multiply":
+            return ` x `;
+        case "divide":
+            return ` / `;
+        default:
+            console.log(`currentOpn = ${currentOpn}`);
+            break;
+    }
+}
+
+const resetCalc = () => {
+    displayVal = " ";
+    displayHistory = " ";
+    calcDisplay.textContent = displayVal;
+    calcDisplayHistory.textContent = displayHistory;
+    currentNum1 = undefined, currentNum2 = undefined, currentOpn = undefined;
+    num1Selected = false, opnSelected = false;
+    console.log(`Calculator is being reset`);
+}
 
 // Basic math functions
 const add = (num1, num2) => (num1 + num2);

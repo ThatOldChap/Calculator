@@ -46,6 +46,7 @@ body, html {
     flex: 1 1 auto;
     display: flex;
     justify-content: right;
+    align-items: center;
 }
 #calc-display-history {
     font-size: 1.5rem;
@@ -53,6 +54,7 @@ body, html {
     flex: 1 1 auto;
     display: flex;
     justify-content: right;
+    align-items: center;
 }
 #calc-btn-container {
     display: flex;
@@ -83,7 +85,7 @@ body, html {
 .calc-btn-operator {
     background: #A3A6A1;
 }
-#opn-equals {
+#func-equals {
     background: #AE52D4;
     border: 1px solid #646568;
     border-radius: 5%;
