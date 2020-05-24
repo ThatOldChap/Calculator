@@ -56,19 +56,18 @@ let prevOpn;
 
 let num1Selected = false;
 let opnSelected = false;
+let divZeroCheck = false;
 
 let numBuilder = false;
 
 /* TODO List:
 *   - If doing any calc with a negative number, add it to the history in ()
 *   - Allow ability to change operator before the next calculation
-*   - Round to certain # of decimals
-*   - Fix max amount of digits on the screen (maybe scroll off page?) 
 *   - Add backspace button functionality
-*   - Add scientific notation support (toExponential function)
 *   - Don't allow operators to be pressed without any input numbers
 *   - Don't allow a divide by 0 case
 *   - Fix functionality to calculate BEDMAS strings like online-calculator
+*   - Add keyboard number functionality
 */
 
 // Adds functionality to use the buttons
@@ -87,6 +86,12 @@ buttons.forEach((button) => {
 
         if (isOpn) currentOpn = buttonID.slice(4), opnSelected = true;
         if (isNum) btnNum = (buttonID.charAt(buttonID.length - 1));
+
+        if (divZeroCheck) {
+            divZeroCheck = false;
+            resetCalc();
+            return;
+        }
 
         // Number is being constructed
         if (isNum && numLimit < 9) {
@@ -120,6 +125,11 @@ buttons.forEach((button) => {
                 updateDisplay(displayVal, displayHistory);
                 calcFinished = false;
                 return; // Erase history and start new calculation with the current total
+            } else if (currentOpn == "divide" && (Number(displayVal) == 0)) {
+                divZeroCheck = true;
+                updateDisplay("Nice try", "Press any key...");
+                console.log("User tried to divide by 0");
+                return;
             }
 
             // First number being entered into the calculator
@@ -127,15 +137,15 @@ buttons.forEach((button) => {
                 console.log(`First number selected`);
                 num1Selected = true;
                 currentNum1 = Number(displayVal);
-                displayHistory += (currentNum1 + getOpnVal(currentOpn));
+                displayHistory += (formatTotal(currentNum1) + getOpnVal(currentOpn));
 
             // An additional operator has been added to continue the calculation
             } else if (num1Selected && opnSelected && isOpn) {
                 currentNum2 = Number(displayVal);
                 total = operate(prevOpn, currentNum1, currentNum2);
-                displayVal = formatTotal(total);
+                displayVal = formatTotal(total, 9);
                 currentNum1 = total;
-                displayHistory += (currentNum2 + getOpnVal(currentOpn));
+                displayHistory += (formatTotal(currentNum2, 7) + getOpnVal(currentOpn));
 
             // The equals button has been pressed to finish the calculation
             } else if (num1Selected && opnSelected && isEquals) {
@@ -144,8 +154,8 @@ buttons.forEach((button) => {
                 total = operate(currentOpn, currentNum1, currentNum2);
                 console.log(`total = ${total} and length = ${getNumDigits(total)}`);
 
-                displayVal = formatTotal(total);
-                displayHistory += (currentNum2 + " =");
+                displayVal = formatTotal(total, 9);
+                displayHistory += (formatTotal(currentNum2, 7) + " =");
                 calcFinished = true;
                 opnSelected = false;
             }
@@ -156,10 +166,9 @@ buttons.forEach((button) => {
     }) 
 });
 
-const formatTotal = (total) => {
+const formatTotal = (total, numDigits) => {
     
-    if(getNumDigits(total) > 9) {
-
+    if(getNumDigits(total) > numDigits) {
         let numString = String(total);
         let decimalIndex = numString.indexOf(".", 0);
 
@@ -167,14 +176,15 @@ const formatTotal = (total) => {
             return total.toExponential(4); // Changes to exponential for large integers
         } else {
             let preDecimal = numString.slice(0, decimalIndex);
-            let newDecimalLength = 9 - (preDecimal.length);
+            let newDecimalLength = numDigits - (preDecimal.length);
+            if (newDecimalLength >= 19) newDecimalLength = 19;
             console.log(`preDecimal = ${preDecimal}`);
             console.log(`newDecimalLength = ${newDecimalLength}`);
             console.log(`preDecimal.length - 1 = ${preDecimal.length - 1}`);
-            return total.toFixed(newDecimalLength);
+            return total.toFixed(newDecimalLength); // Format totals to 9 digits (decimal inclusive)
         }
     } else {
-        return total;
+        return total; 
     }
 }
 
