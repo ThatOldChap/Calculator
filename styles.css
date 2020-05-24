@@ -46,7 +46,7 @@ body, html {
     color: #242723;
     flex: 1 1 auto;
     display: flex;
-    justify-content: right;
+    justify-content: flex-end;
     align-items: center;
     font-family: 'Orbitron', sans-serif;
 }
@@ -55,7 +55,7 @@ body, html {
     color: #565758;
     flex: 1 1 auto;
     display: flex;
-    justify-content: right;
+    justify-content: flex-end;
     align-items: center;
     font-family: 'Orbitron', sans-serif;
 }
