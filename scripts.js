@@ -44,6 +44,7 @@ let isDecimal = false;
 let decimalSelected = false;
 let isOpn = false;
 let isEquals = false;
+let calcStarted = false;
 let calcFinished = false;
 let buttonID;
 let clearDisplay = false;
@@ -52,22 +53,22 @@ let numLimit = 0;
 let currentNum1;
 let currentNum2;
 let currentOpn;
-let prevOpn;
+let prevOpn = -1;
+let prevBtnIsOpn = false;
 
 let num1Selected = false;
 let opnSelected = false;
 let divZeroCheck = false;
+let needPostDecimalVal = false;
 
 let numBuilder = false;
 
 /* TODO List:
 *   - If doing any calc with a negative number, add it to the history in ()
-*   - Allow ability to change operator before the next calculation
 *   - Add backspace button functionality
-*   - Don't allow operators to be pressed without any input numbers
-*   - Don't allow a divide by 0 case
-*   - Fix functionality to calculate BEDMAS strings like online-calculator
 *   - Add keyboard number functionality
+*   - Add sign conversion functionality
+*   - Add quality bitwise check for all flags
 */
 
 // Adds functionality to use the buttons
@@ -79,16 +80,19 @@ buttons.forEach((button) => {
         console.log(`Button = ${buttonID}`);
 
         isNum = (buttonID.search("btn") != -1);
-        isDecimal = (buttonID.search("decimal") != -1);
         isOpn = (buttonID.search("opn") != -1);
         isEquals = (buttonID.search("equals") != -1);
+        isDecimal = (buttonID.search("decimal") != -1);
         clearDisplay = (buttonID.search("clear") != -1);
+        isBackspace = (buttonID.search("backspace") != -1);
 
         if (isOpn) currentOpn = buttonID.slice(4), opnSelected = true;
-        if (isNum) btnNum = (buttonID.charAt(buttonID.length - 1));
+        if (isNum) (btnNum = (buttonID.charAt(buttonID.length - 1))), calcStarted = true;
 
-        if (divZeroCheck) {
+        // Resets the calculator with any button press after a divideByZero attempt
+        if (divZeroCheck && calcStarted) {
             divZeroCheck = false;
+            console.log("Resetting from a divide by zero");
             resetCalc();
             return;
         }
@@ -96,51 +100,98 @@ buttons.forEach((button) => {
         // Number is being constructed
         if (isNum && numLimit < 9) {
             if (decimalSelected && isDecimal) {
+                needPostDecimalVal = true;
                 return; // Only allow for 1 decimal place to be used
             } else if (isDecimal && !decimalSelected) {
                 (numBuilder) ? (displayVal += ".") : (displayVal = "0.", numBuilder = true);
                 decimalSelected = true;
+                needPostDecimalVal = true;
                 calcDisplay.textContent = displayVal;
             } else {
                 (numBuilder) ? (displayVal += btnNum) : (displayVal = btnNum);
                 numBuilder = true;
+                needPostDecimalVal = false;
                 numLimit++;
                 calcDisplay.textContent = displayVal;
             }
+            prevBtnIsOpn = false;
+            console.log(`displayVal = ${displayVal}`);
+
         } else if (isNum && numLimit >= 9) {
             console.log(`numLimit >= 9`);
             return; // Don't allow for more than 9 digits to be entered 
+
         } else if (clearDisplay) {
             resetCalc();
+
+        } else if (isBackspace && (displayVal.length > 0) && numBuilder && !calcFinished) {
+            displayVal = displayVal.slice(0, (displayVal.length - 1));
+            console.log("Removing the last entered digit");
+            updateDisplay(displayVal, displayHistory);
+            numLimit--;
+            isBackspace = false;
+
         } else {
             numBuilder = false;
             decimalSelected = false;
             isDecimal = false;
             numLimit = 0;
 
-            // Prepares the calculator for a new calculation on an old total
-            if (calcFinished) {
+            // All pre-calc checks to prepare for the next calculation
+            // All of these checks return void
+            if (calcFinished && !isBackspace) {
                 currentNum1 = Number(displayVal);
                 displayHistory = (displayVal + getOpnVal(currentOpn));
                 updateDisplay(displayVal, displayHistory);
                 calcFinished = false;
-                return; // Erase history and start new calculation with the current total
+                prevBtnIsOpn = true;
+                prevOpn = currentOpn;
+                console.log("Current calculation is finished");
+                return;
+
+            } else if (needPostDecimalVal) {
+                // Forces the user to finish entering a floating point number
+                console.log(`Number needs a digit after the decimal place`);
+                return;
+
+            } else if (!calcStarted) {
+                console.log(`Calculation needs a number to start with`);
+                return;
+
             } else if (currentOpn == "divide" && (Number(displayVal) == 0)) {
                 divZeroCheck = true;
                 updateDisplay("Nice try", "Press any key...");
                 console.log("User tried to divide by 0");
-                return;
+                return; // Bypasses calculating a divideByZero case
+
+            } else if (isOpn && prevBtnIsOpn) {
+                if (prevOpn != currentOpn) {
+                    displayHistory = displayHistory.slice(0, displayHistory.length - 3);
+                    displayHistory += getOpnVal(currentOpn);
+                    updateDisplay(displayVal, displayHistory)
+                    console.log("Operation is being changed");
+                } else {
+                    console.log("No change in operation");
+                }
+                prevOpn = currentOpn;
+                return; // Allows the user to change operators before a new number is chosen
             }
 
             // First number being entered into the calculator
             if (!num1Selected) {
-                console.log(`First number selected`);
+                console.log(`First number has been selected`);
                 num1Selected = true;
                 currentNum1 = Number(displayVal);
-                displayHistory += (formatTotal(currentNum1) + getOpnVal(currentOpn));
+                if (isEquals) {
+                    console.log("Operation selected was an '='");
+                    displayHistory += (currentNum1 + " =");
+                    calcFinished = true;
+                } else {
+                    displayHistory += (formatTotal(currentNum1) + getOpnVal(currentOpn));
+                }
 
-            // An additional operator has been added to continue the calculation
-            } else if (num1Selected && opnSelected && isOpn) {
+            } else if (num1Selected && opnSelected && isOpn && !prevBtnIsOpn) {
+                console.log("An additional operator has been added to continue the calculation");
                 currentNum2 = Number(displayVal);
                 total = operate(prevOpn, currentNum1, currentNum2);
                 displayVal = formatTotal(total, 9);
@@ -162,8 +213,9 @@ buttons.forEach((button) => {
 
             updateDisplay(displayVal, displayHistory);
             prevOpn = currentOpn;
+            prevBtnIsOpn = isOpn;
         }
-    }) 
+    });
 });
 
 const formatTotal = (total, numDigits) => {
@@ -217,9 +269,12 @@ const resetCalc = () => {
     displayVal = " ";
     displayHistory = " ";
     updateDisplay(displayVal, displayHistory);
+    calcStarted = false, calcFinished = false;
     currentNum1 = undefined, currentNum2 = undefined, currentOpn = undefined, total = undefined;
     numLimit = 0;
-    num1Selected = false, opnSelected = false, calcFinished = false; decimalSelected = false;
+    num1Selected = false, opnSelected = false, decimalSelected = false, prevOpn = undefined;
+    prevBtnIsOpn = false, needPostDecimalVal = false, numBuilder = false;
+
     console.log(`Calculator is being reset`);
 }
 
