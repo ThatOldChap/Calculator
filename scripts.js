@@ -38,6 +38,7 @@ let displayVal = " ";
 let displayHistory = " ";
 let total;
 
+// Flags
 let isNum = false;
 let btnNum = false;
 let isDecimal = false;
@@ -50,6 +51,7 @@ let buttonID;
 let clearDisplay = false;
 let numLimit = 0;
 
+// Values
 let currentNum1;
 let currentNum2;
 let currentOpn;
@@ -65,7 +67,6 @@ let numBuilder = false;
 
 /* TODO List:
 *   - If doing any calc with a negative number, add it to the history in ()
-*   - Add backspace button functionality
 *   - Add keyboard number functionality
 *   - Add sign conversion functionality
 *   - Add quality bitwise check for all flags
@@ -85,6 +86,7 @@ buttons.forEach((button) => {
         isDecimal = (buttonID.search("decimal") != -1);
         clearDisplay = (buttonID.search("clear") != -1);
         isBackspace = (buttonID.search("backspace") != -1);
+        changeSign = (buttonID.search("sign") != -1);
 
         if (isOpn) currentOpn = buttonID.slice(4), opnSelected = true;
         if (isNum) (btnNum = (buttonID.charAt(buttonID.length - 1))), calcStarted = true;
@@ -124,12 +126,19 @@ buttons.forEach((button) => {
         } else if (clearDisplay) {
             resetCalc();
 
-        } else if (isBackspace && (displayVal.length > 0) && numBuilder && !calcFinished) {
-            displayVal = displayVal.slice(0, (displayVal.length - 1));
+        } else if (isBackspace && (displayVal.length > 0) && !calcFinished) {
+            // !calcFinished only allows for the backspace to work during numBuilding
             console.log("Removing the last entered digit");
+            displayVal = displayVal.slice(0, (displayVal.length - 1));
             updateDisplay(displayVal, displayHistory);
             numLimit--;
-            isBackspace = false;
+            isBackspace = false; // resetting flag
+
+        } else if (changeSign) {
+            console.log("Changing sign of number");
+            displayVal = (Number(displayVal) * (-1));
+            updateDisplay(displayVal, displayHistory);
+            changeSign = false; // resetting flag
 
         } else {
             numBuilder = false;
@@ -141,7 +150,11 @@ buttons.forEach((button) => {
             // All of these checks return void
             if (calcFinished && !isBackspace) {
                 currentNum1 = Number(displayVal);
-                displayHistory = (displayVal + getOpnVal(currentOpn));
+                if (currentNum1 >= 0) {
+                    displayHistory = `${displayVal}${getOpnVal(currentOpn)}`;
+                } else {
+                    displayHistory = `(${displayVal})${getOpnVal(currentOpn)}`;
+                }
                 updateDisplay(displayVal, displayHistory);
                 calcFinished = false;
                 prevBtnIsOpn = true;
@@ -178,7 +191,7 @@ buttons.forEach((button) => {
             }
 
             // First number being entered into the calculator
-            if (!num1Selected) {
+            if (!num1Selected && !isBackspace) {
                 console.log(`First number has been selected`);
                 num1Selected = true;
                 currentNum1 = Number(displayVal);
@@ -187,16 +200,23 @@ buttons.forEach((button) => {
                     displayHistory += (currentNum1 + " =");
                     calcFinished = true;
                 } else {
-                    displayHistory += (formatTotal(currentNum1) + getOpnVal(currentOpn));
+                    if (currentNum1 >= 0) {
+                        displayHistory += (formatTotal(currentNum1, 7) + getOpnVal(currentOpn));
+                    } else {
+                        displayHistory += (`(${formatTotal(currentNum1, 6)})` + getOpnVal(currentOpn));
+                    }
                 }
-
             } else if (num1Selected && opnSelected && isOpn && !prevBtnIsOpn) {
                 console.log("An additional operator has been added to continue the calculation");
                 currentNum2 = Number(displayVal);
                 total = operate(prevOpn, currentNum1, currentNum2);
                 displayVal = formatTotal(total, 9);
                 currentNum1 = total;
-                displayHistory += (formatTotal(currentNum2, 7) + getOpnVal(currentOpn));
+                if (currentNum2 >= 0) {
+                    displayHistory += (formatTotal(currentNum2, 7) + getOpnVal(currentOpn));
+                } else {
+                    displayHistory += (`(${formatTotal(currentNum2, 6)})` + getOpnVal(currentOpn));
+                }
 
             // The equals button has been pressed to finish the calculation
             } else if (num1Selected && opnSelected && isEquals) {
@@ -206,11 +226,15 @@ buttons.forEach((button) => {
                 console.log(`total = ${total} and length = ${getNumDigits(total)}`);
 
                 displayVal = formatTotal(total, 9);
-                displayHistory += (formatTotal(currentNum2, 7) + " =");
+                if (currentNum2 >= 0) {
+                    displayHistory += (formatTotal(currentNum2, 7) + " =");
+                } else {
+                    displayHistory += `(${formatTotal(currentNum2, 7)}) =`;
+                }
                 calcFinished = true;
                 opnSelected = false;
             }
-
+            console.log("Updating the display");
             updateDisplay(displayVal, displayHistory);
             prevOpn = currentOpn;
             prevBtnIsOpn = isOpn;
