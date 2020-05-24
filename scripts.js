@@ -41,10 +41,13 @@ let total;
 let isNum = false;
 let btnNum = false;
 let isDecimal = false;
+let decimalSelected = false;
 let isOpn = false;
 let isEquals = false;
 let calcFinished = false;
 let buttonID;
+let clearDisplay = false;
+let numLimit = 0;
 
 let currentNum1;
 let currentNum2;
@@ -62,9 +65,10 @@ let numBuilder = false;
 *   - Round to certain # of decimals
 *   - Fix max amount of digits on the screen (maybe scroll off page?) 
 *   - Add backspace button functionality
+*   - Add scientific notation support (toExponential function)
 *   - Don't allow operators to be pressed without any input numbers
 *   - Don't allow a divide by 0 case
-*   - Fix functionality to calculate BEDMAS strings
+*   - Fix functionality to calculate BEDMAS strings like online-calculator
 */
 
 // Adds functionality to use the buttons
@@ -76,28 +80,38 @@ buttons.forEach((button) => {
         console.log(`Button = ${buttonID}`);
 
         isNum = (buttonID.search("btn") != -1);
-        if (isNum) btnNum = (buttonID.charAt(buttonID.length - 1));
         isDecimal = (buttonID.search("decimal") != -1);
-
         isOpn = (buttonID.search("opn") != -1);
-        if (isOpn) ((currentOpn = buttonID.slice(4)), opnSelected = true);
-
         isEquals = (buttonID.search("equals") != -1);
-        let clearDisplay = (buttonID.search("clear") != -1);
+        clearDisplay = (buttonID.search("clear") != -1);
+
+        if (isOpn) currentOpn = buttonID.slice(4), opnSelected = true;
+        if (isNum) btnNum = (buttonID.charAt(buttonID.length - 1));
 
         // Number is being constructed
-        if (isNum) {
-            if (isDecimal) {
+        if (isNum && numLimit < 9) {
+            if (decimalSelected && isDecimal) {
+                return; // Only allow for 1 decimal place to be used
+            } else if (isDecimal && !decimalSelected) {
                 (numBuilder) ? (displayVal += ".") : (displayVal = "0.", numBuilder = true);
+                decimalSelected = true;
+                calcDisplay.textContent = displayVal;
             } else {
                 (numBuilder) ? (displayVal += btnNum) : (displayVal = btnNum);
                 numBuilder = true;
+                numLimit++;
+                calcDisplay.textContent = displayVal;
             }
-            calcDisplay.textContent = displayVal;
+        } else if (isNum && numLimit >= 9) {
+            console.log(`numLimit >= 9`);
+            return; // Don't allow for more than 9 digits to be entered 
         } else if (clearDisplay) {
             resetCalc();
         } else {
             numBuilder = false;
+            decimalSelected = false;
+            isDecimal = false;
+            numLimit = 0;
 
             // Prepares the calculator for a new calculation on an old total
             if (calcFinished) {
@@ -105,11 +119,12 @@ buttons.forEach((button) => {
                 displayHistory = (displayVal + getOpnVal(currentOpn));
                 updateDisplay(displayVal, displayHistory);
                 calcFinished = false;
-                return;
+                return; // Erase history and start new calculation with the current total
             }
 
             // First number being entered into the calculator
             if (!num1Selected) {
+                console.log(`First number selected`);
                 num1Selected = true;
                 currentNum1 = Number(displayVal);
                 displayHistory += (currentNum1 + getOpnVal(currentOpn));
@@ -118,7 +133,7 @@ buttons.forEach((button) => {
             } else if (num1Selected && opnSelected && isOpn) {
                 currentNum2 = Number(displayVal);
                 total = operate(prevOpn, currentNum1, currentNum2);
-                displayVal = total;
+                displayVal = formatTotal(total);
                 currentNum1 = total;
                 displayHistory += (currentNum2 + getOpnVal(currentOpn));
 
@@ -127,8 +142,9 @@ buttons.forEach((button) => {
                 currentNum2 = Number(displayVal);
                 console.log(`currentNum1 = ${currentNum1}, currentNum2 = ${currentNum2} and currentOpn = ${currentOpn}`);
                 total = operate(currentOpn, currentNum1, currentNum2);
-                console.log(`total = ${total}`);
-                displayVal = total;
+                console.log(`total = ${total} and length = ${getNumDigits(total)}`);
+
+                displayVal = formatTotal(total);
                 displayHistory += (currentNum2 + " =");
                 calcFinished = true;
                 opnSelected = false;
@@ -139,6 +155,32 @@ buttons.forEach((button) => {
         }
     }) 
 });
+
+const formatTotal = (total) => {
+    
+    if(getNumDigits(total) > 9) {
+
+        let numString = String(total);
+        let decimalIndex = numString.indexOf(".", 0);
+
+        if (decimalIndex == -1) {
+            return total.toExponential(4); // Changes to exponential for large integers
+        } else {
+            let preDecimal = numString.slice(0, decimalIndex);
+            let newDecimalLength = 9 - (preDecimal.length);
+            console.log(`preDecimal = ${preDecimal}`);
+            console.log(`newDecimalLength = ${newDecimalLength}`);
+            console.log(`preDecimal.length - 1 = ${preDecimal.length - 1}`);
+            return total.toFixed(newDecimalLength);
+        }
+    } else {
+        return total;
+    }
+}
+
+const getNumDigits = (num) => {
+    return String(num).replace('.','').length;
+}
 
 const updateDisplay = (displayVal, displayHistory) => {
     calcDisplay.textContent = displayVal;
@@ -164,10 +206,10 @@ const getOpnVal = (currentOpn) => {
 const resetCalc = () => {
     displayVal = " ";
     displayHistory = " ";
-    calcDisplay.textContent = displayVal;
-    calcDisplayHistory.textContent = displayHistory;
+    updateDisplay(displayVal, displayHistory);
     currentNum1 = undefined, currentNum2 = undefined, currentOpn = undefined, total = undefined;
-    num1Selected = false, opnSelected = false, calcFinished = false;
+    numLimit = 0;
+    num1Selected = false, opnSelected = false, calcFinished = false; decimalSelected = false;
     console.log(`Calculator is being reset`);
 }
 
